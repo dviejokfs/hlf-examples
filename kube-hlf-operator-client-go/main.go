@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	operatorv1 "github.com/kfsoftware/hlf-operator/pkg/client/clientset/versioned"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
@@ -30,21 +31,21 @@ func main() {
 	} else {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			panic(err.Error())
+			panic(errors.Wrapf(err, "Error getting user home dir"))
 		}
 		kubeConfig = path.Join(homeDir, ".kube", "config")
 		logrus.Infof("Using default kubeconfig: %s", kubeConfig)
 	}
 	hlfClient, err := getHLFClientByKubeConfig(kubeConfig)
 	if err != nil {
-		panic(err.Error())
+		panic(errors.Wrapf(err, "Error getting hlf client"))
 	}
-	peerCuratorList, err := hlfClient.HlfV1alpha1().FabricPeers("").List(context.Background(), v1.ListOptions{})
+	peerList, err := hlfClient.HlfV1alpha1().FabricPeers("").List(context.Background(), v1.ListOptions{})
 	if err != nil {
-		panic(err.Error())
+		panic(errors.Wrapf(err, "Error getting peer list"))
 	}
 	logrus.Infof("List of peers:")
-	for _, peer := range peerCuratorList.Items {
+	for _, peer := range peerList.Items {
 		logrus.Infof("Peer: %s/%s mspID: %s", peer.Name, peer.Namespace, peer.Spec.MspID)
 	}
 }
